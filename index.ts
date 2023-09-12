@@ -1,6 +1,6 @@
 const express = require('express');
 import rmqRouter from './routes/rmqRouter.js';
-import RMQServer from './rmqServer.js';
+import RMQServer from './rmqServer.js'
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +15,7 @@ app.use('/', rmqRouter)
 // app.get('/', function (req, res) { res.send('ok') }); // rota inicial para teste
 
 // server
+// definir porta no arquivo dotenv
 if (!process.env.PORT) throw new Error('environment variable PORT is not defined.');
 const PORT = process.env.PORT
 try {

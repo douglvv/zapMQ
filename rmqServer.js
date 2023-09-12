@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var amqplib_1 = require("amqplib");
 require('dotenv').config();
+// definir url no arquivo dotenv
 if (!process.env.URL)
     throw new Error('Environment variable URL is not defined.');
 var URL = process.env.URL;
@@ -47,7 +48,7 @@ var RMQServer = /** @class */ (function () {
     }
     RMQServer.getInstance = function () {
         if (!RMQServer.instance)
-            RMQServer.instance = new RMQServer('amqp://localhost');
+            RMQServer.instance = new RMQServer(URL);
         return RMQServer.instance;
     };
     RMQServer.prototype.start = function () {
@@ -69,13 +70,35 @@ var RMQServer = /** @class */ (function () {
             });
         });
     };
-    RMQServer.prototype.publishInQueue = function (message, queue) {
+    RMQServer.prototype.createQueue = function (queueName) {
         return __awaiter(this, void 0, void 0, function () {
+            var rmqServer, queue;
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        // inicia a conexão caso já não 
+                        // tenha sido iniciada
+                        if (!this.conn || !this.channel) {
+                            rmqServer = RMQServer.getInstance();
+                            rmqServer.start();
+                        }
+                        return [4 /*yield*/, this.channel.assertQueue(queueName, { durable: true })];
+                    case 1:
+                        queue = _a.sent();
+                        return [2 /*return*/, queue];
+                }
             });
         });
     };
     return RMQServer;
 }());
 exports["default"] = RMQServer;
+// cria queue
+// envia mensagem
+// consume na queue aguardando resposta
+// pode enviar novamente outra mensagem repetindo o mesmo processo
+// joinar chat
+// entra na queue
+// consome
+// aguarda mensagens
+// pode enviar tbm

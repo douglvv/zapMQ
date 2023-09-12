@@ -53,4 +53,27 @@ rmqRouter.post('/start', function (req, res) { return __awaiter(void 0, void 0, 
         }
     });
 }); });
+rmqRouter.post('/createQueue', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var queueName, server, queue, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                queueName = req.body.queueName;
+                console.log(queueName);
+                server = rmqServer_1["default"].getInstance();
+                return [4 /*yield*/, server.createQueue(queueName)];
+            case 1:
+                queue = _a.sent();
+                console.log(queue);
+                res.status(201).json({ message: 'queue created successfuly.', queue: queue });
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                console.log(error_1.message);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
 exports["default"] = rmqRouter;

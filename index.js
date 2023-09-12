@@ -13,6 +13,7 @@ app.use('/', rmqRouter_js_1["default"]);
 // rotas
 // app.get('/', function (req, res) { res.send('ok') }); // rota inicial para teste
 // server
+// definir porta no arquivo dotenv
 if (!process.env.PORT)
     throw new Error('environment variable PORT is not defined.');
 var PORT = process.env.PORT;

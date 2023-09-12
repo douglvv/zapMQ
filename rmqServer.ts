@@ -18,11 +18,19 @@ export default class RMQServer {
     return RMQServer.instance;
   }
 
+  /**
+   * inicia uma conexão e cria um channel no RMQ
+   */
   public async start(): Promise<void> {
     this.conn = await connect(this.url);
     this.channel = await this.conn.createChannel();
   }
 
+  /**
+   * cria uma fila no servidor do RMQ
+   * @param queueName: string 
+   * @returns queue object
+   */
   public async createQueue(queueName: string) {
     // inicia a conexão caso já não 
     // tenha sido iniciada
@@ -35,6 +43,24 @@ export default class RMQServer {
     const queue = await this.channel.assertQueue(queueName, { durable: true })
 
     return queue;
+  }
+
+  /**
+   * envia uma mensagem para uma fila
+   * @param queueName: string
+   * @param message {message: string, timestamp: Date, sender: string}
+   */
+  public async sendMessage(queueName: string, message: {message: string, timestamp: Date, sender: string}) {
+    if (!this.conn || !this.channel) {
+      var rmqServer = RMQServer.getInstance()
+      rmqServer.start()
+    }
+
+    const queue = await this.channel.assertQueue(queueName);
+    if(!queue) return false
+
+    this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), { persistent: true });
+    return true
   }
 }
 

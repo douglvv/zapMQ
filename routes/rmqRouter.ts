@@ -41,6 +41,26 @@ rmqRouter.post('/createQueue', async (req: Request, res: Response) => {
   }
 })
 
+/**
+ * rota para enviar mensagens para uma fila
+ */
+rmqRouter.post('/sendMessage',async (req: Request, res: Response) => {
+  try {
+    const {queueName, message} = req.body;
+    if(!queueName || !message) return res.status(400).json({message: 'missing message or queue'});
+
+    const server = RMQServer.getInstance()
+
+    const result = await server.sendMessage(queueName, message);
+    if(!result) return res.status(404).json({message: 'queue not found.'});
+
+    res.status(200).json({message: `message: ${message.menssage} sent to ${queueName} successfuly.`});    
+  } catch (error: any) {
+    console.log(error.message)
+    res.status(500).json({message: error.message})
+  }
+})
+
 
 
 export default rmqRouter;

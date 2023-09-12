@@ -90,4 +90,33 @@ rmqRouter.post('/createQueue', function (req, res) { return __awaiter(void 0, vo
         }
     });
 }); });
+/**
+ * rota para enviar mensagens para uma fila
+ */
+rmqRouter.post('/sendMessage', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, queueName, message, server, result, error_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, queueName = _a.queueName, message = _a.message;
+                if (!queueName || !message)
+                    return [2 /*return*/, res.status(400).json({ message: 'missing message or queue' })];
+                server = rmqServer_1["default"].getInstance();
+                return [4 /*yield*/, server.sendMessage(queueName, message)];
+            case 1:
+                result = _b.sent();
+                if (!result)
+                    return [2 /*return*/, res.status(404).json({ message: 'queue not found.' })];
+                res.status(200).json({ message: "message: ".concat(message.menssage, " sent to ").concat(queueName, " successfuly.") });
+                return [3 /*break*/, 3];
+            case 2:
+                error_3 = _b.sent();
+                console.log(error_3.message);
+                res.status(500).json({ message: error_3.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
 exports["default"] = rmqRouter;

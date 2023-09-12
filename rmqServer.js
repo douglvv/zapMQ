@@ -51,6 +51,9 @@ var RMQServer = /** @class */ (function () {
             RMQServer.instance = new RMQServer(URL);
         return RMQServer.instance;
     };
+    /**
+     * inicia uma conexão e cria um channel no RMQ
+     */
     RMQServer.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _a, _b;
@@ -70,6 +73,11 @@ var RMQServer = /** @class */ (function () {
             });
         });
     };
+    /**
+     * cria uma fila no servidor do RMQ
+     * @param queueName: string
+     * @returns queue object
+     */
     RMQServer.prototype.createQueue = function (queueName) {
         return __awaiter(this, void 0, void 0, function () {
             var rmqServer, queue;
@@ -86,6 +94,32 @@ var RMQServer = /** @class */ (function () {
                     case 1:
                         queue = _a.sent();
                         return [2 /*return*/, queue];
+                }
+            });
+        });
+    };
+    /**
+     * envia uma mensagem para uma fila
+     * @param queueName: string
+     * @param message {message: string, timestamp: Date, sender: string}
+     */
+    RMQServer.prototype.sendMessage = function (queueName, message) {
+        return __awaiter(this, void 0, void 0, function () {
+            var rmqServer, queue;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.conn || !this.channel) {
+                            rmqServer = RMQServer.getInstance();
+                            rmqServer.start();
+                        }
+                        return [4 /*yield*/, this.channel.assertQueue(queueName)];
+                    case 1:
+                        queue = _a.sent();
+                        if (!queue)
+                            return [2 /*return*/, false];
+                        this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), { persistent: true });
+                        return [2 /*return*/, true];
                 }
             });
         });

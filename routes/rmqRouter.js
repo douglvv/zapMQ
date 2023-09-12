@@ -39,38 +39,52 @@ exports.__esModule = true;
 var express = require('express');
 var rmqServer_1 = require("../rmqServer");
 var rmqRouter = express.Router();
+/**
+ * rota para iniciar uma conexão com o RMQ
+ */
 rmqRouter.post('/start', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var server;
+    var server, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 2, , 3]);
                 server = rmqServer_1["default"].getInstance();
                 return [4 /*yield*/, server.start()];
             case 1:
                 _a.sent();
                 res.status(200).json({ message: 'connection to RMQ started.' });
-                return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                console.log(error_1.message);
+                res.status(500).json({ message: error_1.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
+/**
+ * rota para criar uma fila usada para trocar
+ * as mensagens entre os usuarios
+ */
 rmqRouter.post('/createQueue', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var queueName, server, queue, error_1;
+    var queueName, server, queue, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 queueName = req.body.queueName;
-                console.log(queueName);
                 server = rmqServer_1["default"].getInstance();
                 return [4 /*yield*/, server.createQueue(queueName)];
             case 1:
                 queue = _a.sent();
-                console.log(queue);
-                res.status(201).json({ message: 'queue created successfuly.', queue: queue });
+                console.log("".concat(queue.queue, " created successfuly."));
+                res.status(201).json({ message: "".concat(queue.queue, " created successfuly."), queue: queue });
                 return [3 /*break*/, 3];
             case 2:
-                error_1 = _a.sent();
-                console.log(error_1.message);
+                error_2 = _a.sent();
+                res.status(500).json({ message: error_2.message });
+                console.log(error_2.message);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }

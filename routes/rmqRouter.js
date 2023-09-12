@@ -36,46 +36,21 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var amqplib_1 = require("amqplib");
-require('dotenv').config();
-if (!process.env.URL)
-    throw new Error('Environment variable URL is not defined.');
-var URL = process.env.URL;
-var RMQServer = /** @class */ (function () {
-    function RMQServer(url) {
-        this.url = url;
-    }
-    RMQServer.getInstance = function () {
-        if (!RMQServer.instance)
-            RMQServer.instance = new RMQServer('amqp://localhost');
-        return RMQServer.instance;
-    };
-    RMQServer.prototype.start = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _a = this;
-                        return [4 /*yield*/, (0, amqplib_1.connect)(this.url)];
-                    case 1:
-                        _a.conn = _c.sent();
-                        _b = this;
-                        return [4 /*yield*/, this.conn.createChannel()];
-                    case 2:
-                        _b.channel = _c.sent();
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    RMQServer.prototype.publishInQueue = function (message, queue) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
+var express = require('express');
+var rmqServer_1 = require("../rmqServer");
+var rmqRouter = express.Router();
+rmqRouter.post('/start', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var server;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                server = rmqServer_1["default"].getInstance();
+                return [4 /*yield*/, server.start()];
+            case 1:
+                _a.sent();
+                res.status(200).json({ message: 'connection to RMQ started.' });
                 return [2 /*return*/];
-            });
-        });
-    };
-    return RMQServer;
-}());
-exports["default"] = RMQServer;
+        }
+    });
+}); });
+exports["default"] = rmqRouter;

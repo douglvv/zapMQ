@@ -124,15 +124,62 @@ var RMQServer = /** @class */ (function () {
             });
         });
     };
+    RMQServer.prototype.consumeQueue = function (queueName) {
+        return __awaiter(this, void 0, void 0, function () {
+            var messages, queue;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        messages = [];
+                        return [4 /*yield*/, this.channel.assertQueue(queueName)];
+                    case 1:
+                        queue = _a.sent();
+                        if (!queue)
+                            return [2 /*return*/, false];
+                        _a.label = 2;
+                    case 2:
+                        if (!true) return [3 /*break*/, 5];
+                        // Set up the consumer
+                        return [4 /*yield*/, new Promise(function (resolve) {
+                                _this.channel.consume(queueName, function (msg) { return __awaiter(_this, void 0, void 0, function () {
+                                    var message;
+                                    return __generator(this, function (_a) {
+                                        if (!msg) {
+                                            // No message found, continue listening
+                                            return [2 /*return*/];
+                                        }
+                                        try {
+                                            message = JSON.parse(msg.content.toString());
+                                            console.log("Received message: ".concat(message.message, " from queue ").concat(queueName));
+                                            // Store the message in an array
+                                            messages.push(message);
+                                            // Acknowledge the message to remove it from the queue
+                                            // this.channel.ack(msg);
+                                            resolve();
+                                        }
+                                        catch (error) {
+                                            console.error('Error processing message:', error);
+                                            resolve();
+                                        }
+                                        return [2 /*return*/];
+                                    });
+                                }); });
+                            })];
+                    case 3:
+                        // Set up the consumer
+                        _a.sent();
+                        // Wait for a short delay before checking for new messages again
+                        return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 10); })];
+                    case 4:
+                        // Wait for a short delay before checking for new messages again
+                        _a.sent();
+                        return [3 /*break*/, 2];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return RMQServer;
 }());
 exports["default"] = RMQServer;
-// cria queue
-// envia mensagem
-// consume na queue aguardando resposta
-// pode enviar novamente outra mensagem repetindo o mesmo processo
-// joinar chat
-// entra na queue
-// consome
-// aguarda mensagens
-// pode enviar tbm

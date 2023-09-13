@@ -50,29 +50,59 @@ export default class RMQServer {
    * @param queueName: string
    * @param message {message: string, timestamp: Date, sender: string}
    */
-  public async sendMessage(queueName: string, message: {message: string, timestamp: Date, sender: string}) {
+  public async sendMessage(queueName: string, message: { message: string, timestamp: Date, sender: string }) {
     if (!this.conn || !this.channel) {
       var rmqServer = RMQServer.getInstance()
       rmqServer.start()
     }
 
     const queue = await this.channel.assertQueue(queueName);
-    if(!queue) return false
+    if (!queue) return false
 
     this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), { persistent: true });
     return true
   }
+
+  public async consumeQueue(queueName: string) {
+    const messages: any[] = [];
+    // verifica se a fila existe antes consumir
+    const queue = await this.channel.assertQueue(queueName);
+    if(!queue) return false
+
+    while (true) {
+      // Set up the consumer
+      await new Promise<void>((resolve) => {
+        this.channel.consume(queueName, async (msg) => {
+          if (!msg) {
+            // No message found, continue listening
+            return;
+          }
+  
+          try {
+            const message = JSON.parse(msg.content.toString());
+            console.log(`Received message: ${message.message} from queue ${queueName}`);
+  
+            // Store the message in an array
+            messages.push(message);
+  
+            // Acknowledge the message to remove it from the queue
+            // this.channel.ack(msg);
+            resolve();
+          } catch (error) {
+            console.error('Error processing message:', error);
+            resolve();
+          }
+        });
+      });
+  
+      // Wait for a short delay before checking for new messages again
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  }
+  
+
+
 }
 
-// cria queue
-// envia mensagem
-// consume na queue aguardando resposta
-// pode enviar novamente outra mensagem repetindo o mesmo processo
-
-// joinar chat
-// entra na queue
-// consome
-// aguarda mensagens
-// pode enviar tbm
 
 

@@ -108,12 +108,56 @@ rmqRouter.post('/sendMessage', function (req, res) { return __awaiter(void 0, vo
                 result = _b.sent();
                 if (!result)
                     return [2 /*return*/, res.status(404).json({ message: 'queue not found.' })];
-                res.status(200).json({ message: "message: ".concat(message.menssage, " sent to ").concat(queueName, " successfuly.") });
+                res.status(200).json({ message: "message: ".concat(message, " sent to ").concat(queueName, " successfuly.") });
                 return [3 /*break*/, 3];
             case 2:
                 error_3 = _b.sent();
                 console.log(error_3.message);
                 res.status(500).json({ message: error_3.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
+rmqRouter.post('/consumeQueue', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var queueName, server, message;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                queueName = req.body.queueName;
+                if (!queueName)
+                    return [2 /*return*/, res.status(400).json({ message: 'missing queue name' })];
+                server = rmqServer_1["default"].getInstance();
+                return [4 /*yield*/, server.consumeQueue(queueName)];
+            case 1:
+                message = _a.sent();
+                console.log(message);
+                res.status(200).json({ message: message });
+                return [2 /*return*/];
+        }
+    });
+}); });
+// API endpoint to start message consumption
+rmqRouter.get('/consumeQueue/:queueName', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var queueName, server, messages, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                queueName = req.params.queueName;
+                if (!queueName) {
+                    return [2 /*return*/, res.status(400).json({ message: 'Queue name is required.' })];
+                }
+                server = rmqServer_1["default"].getInstance();
+                return [4 /*yield*/, server.consumeQueue(queueName)];
+            case 1:
+                messages = _a.sent();
+                res.json({ messages: messages });
+                return [3 /*break*/, 3];
+            case 2:
+                error_4 = _a.sent();
+                console.error('Error in message consumption:', error_4);
+                res.status(500).json({ message: 'Internal server error.' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }

@@ -44,22 +44,52 @@ rmqRouter.post('/createQueue', async (req: Request, res: Response) => {
 /**
  * rota para enviar mensagens para uma fila
  */
-rmqRouter.post('/sendMessage',async (req: Request, res: Response) => {
+rmqRouter.post('/sendMessage', async (req: Request, res: Response) => {
   try {
-    const {queueName, message} = req.body;
-    if(!queueName || !message) return res.status(400).json({message: 'missing message or queue'});
+    const { queueName, message } = req.body;
+    if (!queueName || !message) return res.status(400).json({ message: 'missing message or queue' });
 
     const server = RMQServer.getInstance()
 
     const result = await server.sendMessage(queueName, message);
-    if(!result) return res.status(404).json({message: 'queue not found.'});
+    if (!result) return res.status(404).json({ message: 'queue not found.' });
 
-    res.status(200).json({message: `message: ${message.menssage} sent to ${queueName} successfuly.`});    
+    res.status(200).json({ message: `message: ${message} sent to ${queueName} successfuly.` });
   } catch (error: any) {
     console.log(error.message)
-    res.status(500).json({message: error.message})
+    res.status(500).json({ message: error.message })
   }
 })
+
+rmqRouter.post('/consumeQueue', async (req: Request, res: Response) => {
+  const queueName = req.body.queueName
+  if (!queueName) return res.status(400).json({ message: 'missing queue name' })
+
+  const server = RMQServer.getInstance()
+  const message: any = await server.consumeQueue(queueName);
+  
+  console.log(message);
+  res.status(200).json({ message: message });
+
+})
+
+// API endpoint to start message consumption
+rmqRouter.get('/consumeQueue/:queueName', async (req: Request, res: Response) => {
+  try {
+    const queueName = req.params.queueName;
+    if (!queueName) {
+      return res.status(400).json({ message: 'Queue name is required.' });
+    }
+
+    const server = RMQServer.getInstance();
+    const messages = await server.consumeQueue(queueName);
+
+    res.json({ messages });
+  } catch (error) {
+    console.error('Error in message consumption:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
 
 
 

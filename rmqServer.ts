@@ -1,7 +1,7 @@
 import { Channel, Connection, connect } from 'amqplib';
 require('dotenv').config();
 
-// definir url no arquivo dotenv
+// definir URL no arquivo dotenv
 if (!process.env.URL) throw new Error('Environment variable URL is not defined.');
 const URL = process.env.URL;
 
@@ -10,8 +10,9 @@ export default class RMQServer {
   private conn!: Connection;
   private channel!: Channel;
 
-  private constructor(private url: string) { }
+  public constructor(private url: string) { }
 
+  // singleton para acessar o objeto da conexão com o rmq
   public static getInstance(): RMQServer {
     if (!RMQServer.instance) RMQServer.instance = new RMQServer(URL);
 
@@ -63,6 +64,12 @@ export default class RMQServer {
     return true
   }
 
+  /**
+   * começa a consumir a fila passada por
+   * parâmetro
+   * @param queueName: string
+   * @returns 
+   */
   public async consumeQueue(queueName: string) {
     const messages: any[] = [];
     // verifica se a fila existe antes consumir
@@ -70,11 +77,11 @@ export default class RMQServer {
     if(!queue) return false
 
     while (true) {
-      // Set up the consumer
+      // consome a fila
       await new Promise<void>((resolve) => {
         this.channel.consume(queueName, async (msg) => {
           if (!msg) {
-            // No message found, continue listening
+            // caso nao tenha mensagem continua ouvindo
             return;
           }
   
@@ -82,11 +89,12 @@ export default class RMQServer {
             const message = JSON.parse(msg.content.toString());
             console.log(`Received message: ${message.message} from queue ${queueName}`);
   
-            // Store the message in an array
+            // salva a mensagem na array
             messages.push(message);
   
-            // Acknowledge the message to remove it from the queue
+            // Acknowledge na mensagem para remover da fila
             // this.channel.ack(msg);
+
             resolve();
           } catch (error) {
             console.error('Error processing message:', error);
@@ -95,13 +103,11 @@ export default class RMQServer {
         });
       });
   
-      // Wait for a short delay before checking for new messages again
+      // aguarda 10ms antes de procurar por novas mensagens
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
   }
   
-
-
 }
 
 

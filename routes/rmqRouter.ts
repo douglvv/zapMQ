@@ -92,5 +92,4 @@ rmqRouter.get('/consumeQueue/:queueName', async (req: Request, res: Response) =>
 });
 
 
-
 export default rmqRouter;

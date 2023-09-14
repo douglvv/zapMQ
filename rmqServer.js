@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var amqplib_1 = require("amqplib");
 require('dotenv').config();
-// definir url no arquivo dotenv
+// definir URL no arquivo dotenv
 if (!process.env.URL)
     throw new Error('Environment variable URL is not defined.');
 var URL = process.env.URL;
@@ -46,6 +46,7 @@ var RMQServer = /** @class */ (function () {
     function RMQServer(url) {
         this.url = url;
     }
+    // singleton para acessar o objeto da conexão com o rmq
     RMQServer.getInstance = function () {
         if (!RMQServer.instance)
             RMQServer.instance = new RMQServer(URL);
@@ -124,6 +125,12 @@ var RMQServer = /** @class */ (function () {
             });
         });
     };
+    /**
+     * começa a consumir a fila passada por
+     * parâmetro
+     * @param queueName: string
+     * @returns
+     */
     RMQServer.prototype.consumeQueue = function (queueName) {
         return __awaiter(this, void 0, void 0, function () {
             var messages, queue;
@@ -140,21 +147,21 @@ var RMQServer = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         if (!true) return [3 /*break*/, 5];
-                        // Set up the consumer
+                        // consome a fila
                         return [4 /*yield*/, new Promise(function (resolve) {
                                 _this.channel.consume(queueName, function (msg) { return __awaiter(_this, void 0, void 0, function () {
                                     var message;
                                     return __generator(this, function (_a) {
                                         if (!msg) {
-                                            // No message found, continue listening
+                                            // caso nao tenha mensagem continua ouvindo
                                             return [2 /*return*/];
                                         }
                                         try {
                                             message = JSON.parse(msg.content.toString());
                                             console.log("Received message: ".concat(message.message, " from queue ").concat(queueName));
-                                            // Store the message in an array
+                                            // salva a mensagem na array
                                             messages.push(message);
-                                            // Acknowledge the message to remove it from the queue
+                                            // Acknowledge na mensagem para remover da fila
                                             // this.channel.ack(msg);
                                             resolve();
                                         }
@@ -167,12 +174,12 @@ var RMQServer = /** @class */ (function () {
                                 }); });
                             })];
                     case 3:
-                        // Set up the consumer
+                        // consome a fila
                         _a.sent();
-                        // Wait for a short delay before checking for new messages again
+                        // aguarda 10ms antes de procurar por novas mensagens
                         return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 10); })];
                     case 4:
-                        // Wait for a short delay before checking for new messages again
+                        // aguarda 10ms antes de procurar por novas mensagens
                         _a.sent();
                         return [3 /*break*/, 2];
                     case 5: return [2 /*return*/];

@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var amqplib_1 = require("amqplib");
+var socket_io_1 = require("socket.io");
 require('dotenv').config();
 // definir URL no arquivo dotenv
 if (!process.env.URL)
@@ -45,6 +46,7 @@ var URL = process.env.URL;
 var RMQServer = /** @class */ (function () {
     function RMQServer(url) {
         this.url = url;
+        this.io = new socket_io_1.Server();
     }
     // singleton para acessar o objeto da conexão com o rmq
     RMQServer.getInstance = function () {
@@ -132,59 +134,27 @@ var RMQServer = /** @class */ (function () {
      * @returns
      */
     RMQServer.prototype.consumeQueue = function (queueName) {
-        return __awaiter(this, void 0, void 0, function () {
-            var messages, queue;
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        messages = [];
-                        return [4 /*yield*/, this.channel.assertQueue(queueName)];
-                    case 1:
-                        queue = _a.sent();
-                        if (!queue)
-                            return [2 /*return*/, false];
-                        _a.label = 2;
-                    case 2:
-                        if (!true) return [3 /*break*/, 5];
-                        // consome a fila
-                        return [4 /*yield*/, new Promise(function (resolve) {
-                                _this.channel.consume(queueName, function (msg) { return __awaiter(_this, void 0, void 0, function () {
-                                    var message;
-                                    return __generator(this, function (_a) {
-                                        if (!msg) {
-                                            // caso nao tenha mensagem continua ouvindo
-                                            return [2 /*return*/];
-                                        }
-                                        try {
-                                            message = JSON.parse(msg.content.toString());
-                                            console.log("Received message: ".concat(message.message, " from queue ").concat(queueName));
-                                            // salva a mensagem na array
-                                            messages.push(message);
-                                            // Acknowledge na mensagem para remover da fila
-                                            // this.channel.ack(msg);
-                                            resolve();
-                                        }
-                                        catch (error) {
-                                            console.error('Error processing message:', error);
-                                            resolve();
-                                        }
-                                        return [2 /*return*/];
-                                    });
-                                }); });
-                            })];
-                    case 3:
-                        // consome a fila
-                        _a.sent();
-                        // aguarda 10ms antes de procurar por novas mensagens
-                        return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 10); })];
-                    case 4:
-                        // aguarda 10ms antes de procurar por novas mensagens
-                        _a.sent();
-                        return [3 /*break*/, 2];
-                    case 5: return [2 /*return*/];
-                }
-            });
+        // Ensure that the connection and channel are initialized
+        // if (!this.conn || !this.channel) {
+        //   await this.start();
+        // }
+        var _this = this;
+        // Start consuming messages from the queue
+        this.channel.consume(queueName, function (msg) {
+            if (!msg) {
+                // No message received, continue listening
+                return;
+            }
+            try {
+                var message = JSON.parse(msg.content.toString());
+                // Emit the message to connected clients
+                _this.io.to(queueName).emit('newMessage', message);
+                // Acknowledge the message to remove it from the queue
+                // this.channel.ack(msg);
+            }
+            catch (error) {
+                console.error('Error processing message:', error);
+            }
         });
     };
     return RMQServer;

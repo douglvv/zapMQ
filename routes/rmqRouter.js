@@ -74,6 +74,7 @@ rmqRouter.post('/createQueue', function (req, res) { return __awaiter(void 0, vo
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 queueName = req.body.queueName;
+                console.log(queueName);
                 server = rmqServer_1["default"].getInstance();
                 return [4 /*yield*/, server.createQueue(queueName)];
             case 1:
@@ -138,29 +139,21 @@ rmqRouter.post('/consumeQueue', function (req, res) { return __awaiter(void 0, v
     });
 }); });
 // API endpoint to start message consumption
-rmqRouter.get('/consumeQueue/:queueName', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var queueName, server, messages, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                queueName = req.params.queueName;
-                if (!queueName) {
-                    return [2 /*return*/, res.status(400).json({ message: 'Queue name is required.' })];
-                }
-                server = rmqServer_1["default"].getInstance();
-                return [4 /*yield*/, server.consumeQueue(queueName)];
-            case 1:
-                messages = _a.sent();
-                res.json({ messages: messages });
-                return [3 /*break*/, 3];
-            case 2:
-                error_4 = _a.sent();
-                console.error('Error in message consumption:', error_4);
-                res.status(500).json({ message: 'Internal server error.' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+rmqRouter.get('/consumeQueue/:queueName', function (req, res) {
+    try {
+        var queueName = req.params.queueName;
+        console.log("nome da fila que estou consumindo: ", queueName);
+        if (!queueName) {
+            return res.status(400).json({ message: 'Queue name is required.' });
         }
-    });
-}); });
+        var server = rmqServer_1["default"].getInstance();
+        var message = server.consumeQueue(queueName);
+        console.log('mensagem que recebi:', message);
+        res.status(200);
+    }
+    catch (error) {
+        console.error('Error in message consumption:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 exports["default"] = rmqRouter;

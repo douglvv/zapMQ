@@ -1,4 +1,5 @@
-import { Channel, Connection, connect } from 'amqplib';
+import { Channel, Connection, Message, connect } from 'amqplib';
+import { Server } from 'socket.io';
 require('dotenv').config();
 
 // definir URL no arquivo dotenv
@@ -9,8 +10,11 @@ export default class RMQServer {
   private static instance: RMQServer;
   private conn!: Connection;
   private channel!: Channel;
+  private io!: Server;
 
-  public constructor(private url: string) { }
+  private constructor(private url: string) { 
+    this.io = new Server();
+  }
 
   // singleton para acessar o objeto da conexão com o rmq
   public static getInstance(): RMQServer {
@@ -70,42 +74,31 @@ export default class RMQServer {
    * @param queueName: string
    * @returns 
    */
-  public async consumeQueue(queueName: string) {
-    const messages: any[] = [];
-    // verifica se a fila existe antes consumir
-    const queue = await this.channel.assertQueue(queueName);
-    if(!queue) return false
+  public consumeQueue(queueName: string) {
+    // Ensure that the connection and channel are initialized
+    // if (!this.conn || !this.channel) {
+    //   await this.start();
+    // }
 
-    while (true) {
-      // consome a fila
-      await new Promise<void>((resolve) => {
-        this.channel.consume(queueName, async (msg) => {
-          if (!msg) {
-            // caso nao tenha mensagem continua ouvindo
-            return;
-          }
-  
-          try {
-            const message = JSON.parse(msg.content.toString());
-            console.log(`Received message: ${message.message} from queue ${queueName}`);
-  
-            // salva a mensagem na array
-            messages.push(message);
-  
-            // Acknowledge na mensagem para remover da fila
-            // this.channel.ack(msg);
+    // Start consuming messages from the queue
+    this.channel.consume(queueName, (msg: Message | null) => {
+      if (!msg) {
+        // No message received, continue listening
+        return;
+      }
 
-            resolve();
-          } catch (error) {
-            console.error('Error processing message:', error);
-            resolve();
-          }
-        });
-      });
-  
-      // aguarda 10ms antes de procurar por novas mensagens
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
+      try {
+        const message = JSON.parse(msg.content.toString());
+
+        // Emit the message to connected clients
+        this.io.to(queueName).emit('newMessage', message);
+
+        // Acknowledge the message to remove it from the queue
+        // this.channel.ack(msg);
+      } catch (error) {
+        console.error('Error processing message:', error);
+      }
+    });
   }
   
 }

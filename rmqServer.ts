@@ -55,7 +55,7 @@ export default class RMQServer {
    * @param queueName: string
    * @param message {message: string, timestamp: Date, sender: string}
    */
-  public async sendMessage(queueName: string, message: { message: string, timestamp: Date, sender: string }) {
+  public async sendMessage(queueName: string, message: { message: string, timestamp: string, sender: string }) {
     if (!this.conn || !this.channel) {
       var rmqServer = RMQServer.getInstance()
       rmqServer.start()
@@ -68,38 +68,38 @@ export default class RMQServer {
     return true
   }
 
-  /**
-   * começa a consumir a fila passada por
-   * parâmetro
-   * @param queueName: string
-   * @returns 
-   */
-  public consumeQueue(queueName: string) {
-    // Ensure that the connection and channel are initialized
-    // if (!this.conn || !this.channel) {
-    //   await this.start();
-    // }
+  // /**
+  //  * começa a consumir a fila passada por
+  //  * parâmetro
+  //  * @param queueName: string
+  //  * @returns 
+  //  */
+  // public consumeQueue(queueName: string) {
+  //   // Ensure that the connection and channel are initialized
+  //   // if (!this.conn || !this.channel) {
+  //   //   await this.start();
+  //   // }
 
-    // Start consuming messages from the queue
-    this.channel.consume(queueName, (msg: Message | null) => {
-      if (!msg) {
-        // No message received, continue listening
-        return;
-      }
+  //   // Start consuming messages from the queue
+  //   this.channel.consume(queueName, (msg: Message | null) => {
+  //     if (!msg) {
+  //       // No message received, continue listening
+  //       return;
+  //     }
 
-      try {
-        const message = JSON.parse(msg.content.toString());
+  //     try {
+  //       const message = JSON.parse(msg.content.toString());
 
-        // Emit the message to connected clients
-        this.io.to(queueName).emit('newMessage', message);
+  //       // Emit the message to connected clients
+  //       this.io.to(queueName).emit('newMessage', message);
 
-        // Acknowledge the message to remove it from the queue
-        // this.channel.ack(msg);
-      } catch (error) {
-        console.error('Error processing message:', error);
-      }
-    });
-  }
+  //       // Acknowledge the message to remove it from the queue
+  //       // this.channel.ack(msg);
+  //     } catch (error) {
+  //       console.error('Error processing message:', error);
+  //     }
+  //   });
+  // }
   
 }
 

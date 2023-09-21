@@ -127,36 +127,6 @@ var RMQServer = /** @class */ (function () {
             });
         });
     };
-    /**
-     * começa a consumir a fila passada por
-     * parâmetro
-     * @param queueName: string
-     * @returns
-     */
-    RMQServer.prototype.consumeQueue = function (queueName) {
-        // Ensure that the connection and channel are initialized
-        // if (!this.conn || !this.channel) {
-        //   await this.start();
-        // }
-        var _this = this;
-        // Start consuming messages from the queue
-        this.channel.consume(queueName, function (msg) {
-            if (!msg) {
-                // No message received, continue listening
-                return;
-            }
-            try {
-                var message = JSON.parse(msg.content.toString());
-                // Emit the message to connected clients
-                _this.io.to(queueName).emit('newMessage', message);
-                // Acknowledge the message to remove it from the queue
-                // this.channel.ack(msg);
-            }
-            catch (error) {
-                console.error('Error processing message:', error);
-            }
-        });
-    };
     return RMQServer;
 }());
 exports["default"] = RMQServer;

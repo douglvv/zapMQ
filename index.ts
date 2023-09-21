@@ -1,6 +1,7 @@
 const express = require('express');
-const { createServer } = require("http");
 import rmqRouter from './routes/rmqRouter.js';
+import RMQServer from './rmqServer.js';
+import { Request, Response } from 'express';
 
 
 // import RMQServer from './rmqServer.js'
@@ -16,19 +17,19 @@ app.use(express.json());
 app.use(express.static('public'))
 app.use('/', rmqRouter)
 
-
 // rotas
-// app.get('/', function (req, res) { res.send('ok') }); // rota inicial para teste
+app.get('/', function (req: Request, res: Response) { res.send('ok') }); // rota inicial para teste
 
 // server
 // definir PORT no arquivo dotenv
 if (!process.env.PORT) throw new Error('environment variable PORT is not defined.');
 const PORT = process.env.PORT
 try {
-    app.listen(PORT, () => {
-        console.log('server listening on port ', PORT);
-        // rmqServer.start()
-        // console.log('connected to RMQ server')
+    app.listen(PORT, async () => {
+        console.log('server listenin on port', PORT)
+        // const RMQConn = RMQServer.getInstance()
+        // await RMQConn.start()
+        // await RMQConn.createQueue("chat")
     })
 } catch (error: any) {
     console.log(error.message)

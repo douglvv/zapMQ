@@ -1,5 +1,4 @@
-import { Channel, Connection, Message, connect } from 'amqplib';
-import { Server } from 'socket.io';
+import { Channel, Connection, connect } from 'amqplib';
 require('dotenv').config();
 
 // definir URL no arquivo dotenv
@@ -10,11 +9,8 @@ export default class RMQServer {
   private static instance: RMQServer;
   private conn!: Connection;
   private channel!: Channel;
-  private io!: Server;
 
-  private constructor(private url: string) { 
-    this.io = new Server();
-  }
+  private constructor(private url: string) { }
 
   // singleton para acessar o objeto da conexão com o rmq
   public static getInstance(): RMQServer {
@@ -37,14 +33,13 @@ export default class RMQServer {
    * @returns queue object
    */
   public async createQueue(queueName: string) {
-    // inicia a conexão caso já não 
-    // tenha sido iniciada
+    // inicia uma conexão caso não haja uma
     if (!this.conn || !this.channel) {
-      var rmqServer = RMQServer.getInstance()
+      const rmqServer = RMQServer.getInstance()
       rmqServer.start()
     }
 
-    // cria a fila das conversa
+    // cria a queue para o chat
     const queue = await this.channel.assertQueue(queueName, { durable: true })
 
     return queue;
@@ -55,52 +50,24 @@ export default class RMQServer {
    * @param queueName: string
    * @param message {message: string, timestamp: Date, sender: string}
    */
-  public async sendMessage(queueName: string, message: { message: string, timestamp: string, sender: string }) {
+  public async sendMessage(
+    queueName: string,
+    message: { message: string, timestamp: string, sender: string }
+  ) {
+    // inicia uma conexão caso não haja uma
     if (!this.conn || !this.channel) {
-      var rmqServer = RMQServer.getInstance()
+      const rmqServer = RMQServer.getInstance()
       rmqServer.start()
     }
 
     const queue = await this.channel.assertQueue(queueName);
     if (!queue) return false
 
+    // envia a mensagem para a queue
     this.channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), { persistent: true });
     return true
   }
 
-  // /**
-  //  * começa a consumir a fila passada por
-  //  * parâmetro
-  //  * @param queueName: string
-  //  * @returns 
-  //  */
-  // public consumeQueue(queueName: string) {
-  //   // Ensure that the connection and channel are initialized
-  //   // if (!this.conn || !this.channel) {
-  //   //   await this.start();
-  //   // }
-
-  //   // Start consuming messages from the queue
-  //   this.channel.consume(queueName, (msg: Message | null) => {
-  //     if (!msg) {
-  //       // No message received, continue listening
-  //       return;
-  //     }
-
-  //     try {
-  //       const message = JSON.parse(msg.content.toString());
-
-  //       // Emit the message to connected clients
-  //       this.io.to(queueName).emit('newMessage', message);
-
-  //       // Acknowledge the message to remove it from the queue
-  //       // this.channel.ack(msg);
-  //     } catch (error) {
-  //       console.error('Error processing message:', error);
-  //     }
-  //   });
-  // }
-  
 }
 
 
